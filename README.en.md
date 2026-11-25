@@ -26,6 +26,10 @@ curl -fsSL https://raw.githubusercontent.com/Zenine/nsfc-writing/main/scripts/in
 claude plugin marketplace add Zenine/nsfc-writing && claude plugin install nsfc-writing@nsfc-writing
 ```
 
+## Past final reports (manual browser steps)
+
+Final reports of completed NSFC projects are public on kd.nsfc.cn, but viewing a full report requires passing a slider verification in the browser, so the skill does not download them automatically. Search the site in your browser, open a report, pass the verification, save each page image into one folder per project (file names numbered by page), merge them with `python3 skills/nsfc-writing/scripts/merge_pages.py <folder> --name "<project name>"` (requires Pillow), and give the PDF to the agent. For personal study only; follow the site's terms of use.
+
 ## Notes
 
 - Policy items follow the 2026 NSFC call and the 2026 proposal outline; check each year's official call and template.

@@ -5,7 +5,7 @@ set -euo pipefail
 USAGE='用法：
   curl -fsSL https://raw.githubusercontent.com/Zenine/nsfc-writing/main/scripts/install.sh | bash
   curl -fsSL .../install.sh | bash -s -- --link          # 克隆后软链接，便于 git pull 更新
-  curl -fsSL .../install.sh | REF=v0.2.1 bash            # 安装指定版本
+  curl -fsSL .../install.sh | REF=v0.2.2 bash            # 安装指定版本
 环境变量：
   TARGET=claude|codex|all   默认 all：装到已存在的 ~/.claude 与 ${CODEX_HOME:-~/.codex}
   DEST=<skills 目录>        自定义 skills 目录，实际安装到 <skills 目录>/nsfc-writing（此时忽略 TARGET）

@@ -1,6 +1,6 @@
 {
   "name": "nsfc-writing",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "国自然（NSFC）申请书写作 skill：科学问题凝练、题目摘要、立项依据、研究内容与关键科学问题、技术路线、创新、研究基础的起草、修改、诊断与提交前自查。",
   "author": { "name": "Zenine" }
 }
