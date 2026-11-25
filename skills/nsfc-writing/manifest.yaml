@@ -1,0 +1,52 @@
+name: nsfc-writing
+version: 0.1.0
+description: >
+  按需加载清单。SKILL.md 依据本文件决定每次读哪些片段：core 每次必读，
+  sections 按用户涉及的章节读，references 按条件读。
+
+always_load:
+  - core/stance.md
+  - core/science-question.md
+  - core/reviewer-lens.md
+
+axes:
+  task:
+    detect: |
+      用户给出材料要求写出新文字 → draft；给出已有文字要求改 → revise；
+      要求“看看问题、打分、评审意见” → diagnose；要求交稿前检查 → check。
+    values: [draft, revise, diagnose, check]
+    default: draft
+  section:
+    detect: 按用户点名的部分判断，可多选；整本起草时按提纲顺序逐节加载。
+    values:
+      topic-title: sections/topic-title.md
+      abstract: sections/abstract.md
+      rationale: sections/rationale.md
+      content-aims-questions: sections/content-aims-questions.md
+      plan-roadmap: sections/plan-roadmap.md
+      figures: sections/figures.md
+      innovation: sections/innovation.md
+      schedule-outcomes: sections/schedule-outcomes.md
+      foundation: sections/foundation.md
+    multi: true
+  program:
+    detect: 用户说明的项目类型；未说明时默认青C，并在判断行中写出。
+    values: [youth-c, general, regional, joint, provincial]
+    default: youth-c
+
+references:
+  on_demand:
+    - condition: 问到提纲结构、篇幅、预算、研究属性、代表作、生成式人工智能声明等硬要求
+      path: references/policy-2026.md
+    - condition: program 不是 youth-c，或涉及联合基金、省级项目
+      path: references/programs.md
+    - condition: 起草或修改任何正文
+      path: references/wording.md
+    - condition: task 为 diagnose，或用户说流水账、没亮点、太技术、AI味
+      path: references/diagnosis.md
+    - condition: task 为 check，或整本交稿前
+      path: references/checklist.md
+    - condition: 用户要借助大模型自查、仿写、按往年评审意见修改
+      path: references/ai-assist.md
+    - condition: 用户要完整示例，或不清楚科学问题如何贯穿全本
+      path: references/worked-example.md

@@ -1,0 +1,10 @@
+# 课程资料、书籍与抽取文本有版权，永不入库
+sources/
+*.pdf
+*.pptx
+*.mp4
+*.docx
+__pycache__/
+.venv/
+.DS_Store
+.private/

@@ -1,0 +1,15 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "nsfc-writing",
+  "description": "国自然申请书写作 skill 的单插件 marketplace",
+  "owner": { "name": "Zenine" },
+  "plugins": [
+    {
+      "name": "nsfc-writing",
+      "description": "国自然（NSFC）及省级科研基金申请书的起草、修改、诊断与自查：以科学问题工作表贯穿题目、摘要、立项依据、研究内容、技术路线、创新与研究基础。",
+      "author": { "name": "Zenine" },
+      "category": "productivity",
+      "source": "./"
+    }
+  ]
+}

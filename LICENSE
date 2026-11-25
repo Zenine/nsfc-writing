@@ -1,0 +1,12 @@
+# nsfc-writing 的双许可说明
+
+除下文明确排除的材料外，本仓库按目录分别许可：
+
+- `scripts/`、`.github/`、`tests/scripts/`、`.claude-plugin/` 及其他代码或配置文件，适用 [MIT License](LICENSES/MIT.txt)。
+- `skills/`、`docs/`、`tests/fixtures/`、`tests/regression/`、`README.md`、`README.en.md`，适用 [Creative Commons Attribution 4.0 International (CC BY 4.0)](LICENSES/CC-BY-4.0.txt)。
+
+## 不在本仓库许可范围内的材料
+
+参考书籍、培训课程及其任何原文、课件、录像、转写文本、截图，不由本仓库授权。`sources/` 是本机参考材料目录，已被忽略，不得提交。
+
+`skills/` 中的内容是独立撰写的方法整理；其许可只适用于这些仓库文件本身，不适用于任何参考材料原作。
