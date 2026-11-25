@@ -20,6 +20,7 @@ All instructions and templates are written in Simplified Chinese, because the pr
 npx skills add Zenine/nsfc-writing -g -y
 # or
 curl -fsSL https://raw.githubusercontent.com/Zenine/nsfc-writing/main/scripts/install.sh | bash
+# DEST=<skills dir> installs into <skills dir>/nsfc-writing; pass flags with | bash -s -- --link
 # or, as a Claude Code plugin
 claude plugin marketplace add Zenine/nsfc-writing && claude plugin install nsfc-writing@nsfc-writing
 ```
@@ -27,11 +28,11 @@ claude plugin marketplace add Zenine/nsfc-writing && claude plugin install nsfc-
 ## Notes
 
 - Policy items follow the 2026 NSFC call and the 2026 proposal outline; check each year's official call and template.
-- NSFC requires human verification of AI-generated content and disclosure of its use, and forbids submitting AI-generated proposals. The skill produces drafts and audits for the applicant to rewrite; it never invents references, and data figures must come from real results.
+- NSFC requires human verification of AI-generated content, disclosure and labelling of its use, and forbids submitting AI-generated proposals. The skill produces drafts and audits for the applicant to rewrite. It instructs the agent not to invent references and to mark unverifiable items as 【待核】; data figures must come from real results.
 
 ## Sources
 
-Independently written. Methods were learned from the 2026 NSFC call and outline, the book *From Technical Problems to Scientific Questions* (Gong Xuzhong, Science Press), notes from a grant-writing training course, the open-source projects njzjz/nsfc-agent-skills and jiankang1991/nsfc-benzi-audit, and the maintainer's own proposal-writing experience. No source text, slides or screenshots are included.
+The skill reorganizes writing methods learned from the 2026 NSFC call and outline, notes from a grant-writing training course (which shaped much of the section structure), the book *From Technical Problems to Scientific Questions* (Gong Xuzhong, Science Press), the open-source projects njzjz/nsfc-agent-skills and jiankang1991/nsfc-benzi-audit, and the maintainer's own proposal-writing experience. No text, slides or screenshots from the course or the book are included; the official call and outline are quoted verbatim.
 
 ## License
 

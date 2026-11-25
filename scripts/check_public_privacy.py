@@ -10,7 +10,9 @@ from pathlib import Path
 from typing import Iterable
 
 
-TEXT_SUFFIXES = {".md", ".sh", ".py", ".json", ".yml", ".yaml"}
+TEXT_SUFFIXES = {".md", ".sh", ".py", ".json", ".yml", ".yaml", ".txt"}
+ROOT = Path(__file__).resolve().parent.parent
+EXCLUDED_ROOT_DIRS = {ROOT / "sources", ROOT / ".private"}
 RULES = (
     ("Unix 本机绝对路径", re.compile(r"(?<![\w.-])/(?:Users|home)/[^/\s]+(?:/[^\s]*)?")),
     ("Windows 本机绝对路径", re.compile(r"(?i)\b[A-Z]:\\+Users\\+[^\\\s]+(?:\\+[^\s]*)?")),
@@ -27,8 +29,14 @@ RULES = (
 
 def public_text_files(paths: Iterable[Path]) -> Iterable[Path]:
     """迭代待扫描文本；不跟随符号链接，也不进入排除目录。"""
+    def excluded(p: Path) -> bool:
+        resolved = p.resolve()
+        if ".git" in p.parts:
+            return True
+        return any(resolved == d or d in resolved.parents for d in EXCLUDED_ROOT_DIRS)
+
     for path in paths:
-        if path.is_symlink() or path.name in {".git", "sources"}:
+        if path.is_symlink() or excluded(path):
             continue
         if path.is_file():
             if path.suffix.lower() in TEXT_SUFFIXES:
@@ -37,7 +45,7 @@ def public_text_files(paths: Iterable[Path]) -> Iterable[Path]:
         if not path.is_dir():
             continue
         for child in path.rglob("*"):
-            if child.is_symlink() or any(parent.name in {".git", "sources"} for parent in child.parents):
+            if child.is_symlink() or excluded(child):
                 continue
             if child.is_file() and child.suffix.lower() in TEXT_SUFFIXES:
                 yield child
@@ -56,6 +64,7 @@ def load_blacklist(path: Path | None) -> list[str]:
 
 
 BLACKLIST: list[str] = []
+ONLY_BLACKLIST = False
 
 
 def scan_file(path: Path) -> bool:
@@ -68,7 +77,7 @@ def scan_file(path: Path) -> bool:
         return True
 
     for line_number, line in enumerate(lines, start=1):
-        for category, pattern in RULES:
+        for category, pattern in ([] if ONLY_BLACKLIST else RULES):
             if pattern.search(line):
                 print(f"{path}:{line_number}: 发现公开隐私风险: {category}")
                 found = True
@@ -82,8 +91,11 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="扫描公开文本中的隐私风险")
     parser.add_argument("paths", nargs="+", type=Path, help="待扫描文件或目录")
     parser.add_argument("--blacklist", type=Path, default=None, help="本机私有黑名单文件（不入库）")
+    parser.add_argument("--only-blacklist", action="store_true", help="只查黑名单词（用于含正则源码的脚本目录）")
     args = parser.parse_args(argv)
     BLACKLIST[:] = load_blacklist(args.blacklist)
+    global ONLY_BLACKLIST
+    ONLY_BLACKLIST = args.only_blacklist
 
     found = False
     for path in public_text_files(args.paths):

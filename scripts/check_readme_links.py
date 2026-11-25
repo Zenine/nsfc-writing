@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """检查 Markdown 内联链接和图片的本地目标是否存在。"""
 
+from __future__ import annotations
+
 import re
 import sys
 from pathlib import Path
@@ -8,6 +10,7 @@ from urllib.parse import unquote, urlsplit
 
 
 FENCE = re.compile(r"^\s{0,3}(`{3,}|~{3,})")
+CODE_SPAN = re.compile(r"(`+)(.+?)\1")
 ROOT = Path(__file__).resolve().parent.parent
 
 
@@ -30,8 +33,8 @@ def inline_destinations(line: str):
     index = 0
     while index < len(line):
         start = index + 1 if line[index:index + 2] == "![" else index
-        if line[start:start + 1] != "[":
-            index += 1
+        if line[start:start + 1] != "[" or (start > 0 and line[start - 1] == "\\"):
+            index = start + 1
             continue
         label_end, label_depth = start + 1, 1
         while label_end < len(line) and label_depth:
@@ -108,6 +111,7 @@ def check(path: Path) -> int:
         print(f"{path}: 缺失 Markdown 文件", file=sys.stderr)
         return 1
     for lineno, line in in_fenced_code(path.read_text(encoding="utf-8").splitlines()):
+        line = CODE_SPAN.sub(lambda m: " " * len(m.group(0)), line)
         for target in inline_destinations(line):
             local = local_target(target)
             if local is None:

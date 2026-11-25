@@ -26,7 +26,7 @@ printf '%s\n' '-----BEGIN PRIVATE KEY-----' > "$tmp/private-key.md"
 printf '%s\n' 'skills/nsfc-writing/references/02-methods.md' > "$tmp/relative.md"
 printf '%s\n' 'p = 0.05; n = 120; 95% CI = 1.2-2.3' > "$tmp/statistics.md"
 printf '%s\n' 'ignored /Users/example/private/ignored.md' > "$tmp/.git/ignored.md"
-printf '%s\n' 'ignored sk-abcdefghijklmnopqrstuvwxyz123456' > "$tmp/sources/ignored.md"
+printf '%s\n' 'nested sk-abcdefghijklmnopqrstuvwxyz123456' > "$tmp/sources/nested-sources.md"
 
 output="$tmp/output"
 if python3 "$checker" "$tmp" >"$output" 2>&1; then
@@ -47,6 +47,8 @@ grep -Fqx "$tmp/slack.py:1: 发现公开隐私风险: Slack 访问令牌" "$outp
 grep -Fqx "$tmp/aws.yml:1: 发现公开隐私风险: AWS 访问密钥 ID" "$output" >/dev/null
 grep -Fqx "$tmp/stripe.yml:1: 发现公开隐私风险: Stripe 密钥" "$output" >/dev/null
 grep -Fqx "$tmp/private-key.md:1: 发现公开隐私风险: 私钥标记" "$output" >/dev/null
+# 只有仓库根下的 sources/ 被排除；嵌套的同名目录照常扫描。
+grep -Fqx "$tmp/sources/nested-sources.md:1: 发现公开隐私风险: OpenAI API 密钥" "$output" >/dev/null
 
 if grep -Eq 'relative\.md|statistics\.md|ignored\.md|sk-[a-z]|ghp_[a-z]|github_pat_|xoxb-|AKIA[0-9A-Z]|sk_live_' "$output"; then
   printf '失败：扫描器输出不应回显风险原文，且不应报告合法或排除 fixture\n' >&2

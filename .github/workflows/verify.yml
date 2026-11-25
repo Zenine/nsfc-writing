@@ -4,21 +4,26 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   verify:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.9", "3.12"]
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
       - name: 运行仓库验证
         run: bash scripts/verify.sh
-      - name: 运行 README 链接检查回归测试
-        run: bash tests/scripts/test-check-readme-links.sh
-      - name: 运行安装器回归测试
-        run: bash tests/scripts/test-install.sh
-      - name: 运行隐私扫描回归测试
-        run: bash tests/scripts/test-public-privacy.sh
+      - name: 运行脚本回归测试
+        run: for t in tests/scripts/*.sh; do echo "== $t"; bash "$t"; done
       - name: 检查 Shell 语法
-        run: bash -n scripts/*.sh
+        run: bash -n scripts/*.sh tests/scripts/*.sh
       - name: 编译 Python 脚本
         run: python3 -m py_compile scripts/*.py
       - name: 校验插件 JSON

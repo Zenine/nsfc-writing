@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 2026-11-25（v0.1.1）
+
+- 按五路审阅修复 skill 正文冲突与政策过度推断，提纲改按原文摘录，`policy-2026.md`。
+- 新增英文题目摘要与预算两节，`sections/english.md`、`sections/budget.md`。
+- 重写配图、大模型辅助、自查清单与示例，去除课程独有的口诀与配比。
+- 任务新增政策问答，加载条件只留 `manifest.yaml`，新增 `check_skill_structure.py`。
+- 修复 `install.sh` 以父目录为 DEST 时误删其他 skill，补回归测试。
+- 重合检查改为整份文件比对并扩大范围，新增 `tests/scripts/test-overlap.sh`。
+- 修复 Python 3.9 与 bash 3.2 兼容问题，CI 增加 3.9 矩阵与只读权限。
+- 许可证补全 CC BY 4.0 全文、版权人与目录边界，`LICENSE`。
+
 ## 2026-11-25
 
 - 新建 `skills/nsfc-writing/`：路由、加载清单、core 三件、9 个章节片段与 7 个参考文件。
