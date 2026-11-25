@@ -29,7 +29,7 @@ skills/nsfc-writing/
 ├── core/               每次必读：工作立场与语体、科学问题工作表、评审视角
 ├── sections/           按章节：题目、摘要、英文题目摘要、立项依据、研究内容、方案、配图、创新、计划、研究基础、预算
 ├── references/         按条件：2026 版提纲与硬要求、项目类型差异、用词、诊断、自查清单、大模型辅助、完整示例、往年结题报告
-└── scripts/            字数统计；把本地保存的结题报告页面合并为 PDF（需要 Pillow）
+└── scripts/            字数统计；用已验证的报告令牌下载结题报告页面（需要 requests）；把页面合并为 PDF（需要 Pillow）
 ```
 
 路由方式借鉴了 [nature-skills](https://github.com/Yuan1z0825/nature-skills) 的“核心必读 ＋ 按维度加载片段 ＋ 按条件查参考”设计，避免一次把所有规则塞进上下文。
@@ -54,7 +54,7 @@ curl -fsSL https://raw.githubusercontent.com/Zenine/nsfc-writing/main/scripts/in
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Zenine/nsfc-writing/main/scripts/install.sh | bash -s -- --link   # 克隆后软链接；装的是分支时可用 git pull 更新
-curl -fsSL https://raw.githubusercontent.com/Zenine/nsfc-writing/main/scripts/install.sh | REF=v0.2.2 bash   # 安装指定版本
+curl -fsSL https://raw.githubusercontent.com/Zenine/nsfc-writing/main/scripts/install.sh | REF=v0.2.3 bash   # 安装指定版本
 ```
 
 其他选项：`TARGET=claude` 或 `TARGET=codex` 只装一个；`DEST=<skills 目录>` 指定 skills 目录，实际装到 `<skills 目录>/nsfc-writing`；目标已存在但不是本 skill 时脚本会停止。想先看脚本：下载后 `less install.sh` 再运行。脚本只下载、复制或软链接，不改任何配置文件。
@@ -81,15 +81,26 @@ cp -r nsfc-writing/skills/nsfc-writing ~/.codex/skills/nsfc-writing    # Codex
 
 ## 参考往年结题报告（需要手动操作浏览器）
 
-国家自然科学基金基础研究知识库（kd.nsfc.cn）公开已结题项目的结题报告，但查看全文前要在网页上完成滑块验证，skill 不提供自动下载。需要参考时按下面的步骤手动保存，再交给 agent 分析：
+国家自然科学基金基础研究知识库（kd.nsfc.cn）公开已结题项目的结题报告，但查看全文前要在网页上完成滑块验证。滑块验证需要你本人在浏览器中完成，之后有两种推荐做法：
 
-1. 在浏览器中打开 kd.nsfc.cn，按关键词、申请代码、资助类别或年度检索已结题项目。
-2. 进入项目详情页，打开结题报告，按提示完成滑块验证。
-3. 逐页保存报告页面图片（对页面图片右键另存为，或用浏览器截图），每个项目存一个目录，文件名带页码（如 `1.png`、`2.png`）。
-4. 合并成 PDF：`python3 skills/nsfc-writing/scripts/merge_pages.py 报告图片目录 --name "项目名称"`（需要 Pillow：`pip install Pillow`）。
-5. 把 PDF 或图片目录交给 agent，说“参考这几份结题报告”。agent 会按 `references/past-reports.md` 比较题目收窄程度、研究体量、计划与完成的差距和成果数量。
+- **用浏览器自动化工具**（Claude in Chrome、桌面版内置浏览器、browser-use、Playwright 等）：让 agent 检索并打开报告；出现滑块时 agent 会停下，由你在该窗口中完成；之后 agent 逐页保存页面图片。
+- **复制报告令牌后用脚本下载**：在自己的浏览器中完成验证，打开开发者工具的“网络”面板，找到 `/api/baseQuery/completeProjectReport` 请求，复制其中的 `reportToken`（必要时连同 Cookie、User-Agent），约 29 分钟内运行：
 
-报告供个人学习参考，按网站使用条款使用，不对外分发。
+  ```bash
+  python3 skills/nsfc-writing/scripts/fetch_report.py --url "项目详情页地址" --token 报告令牌 --out 报告图片目录
+  ```
+
+  脚本每页间隔不少于 1 秒，令牌失效会停下并提示重新验证，重跑可续传；需要 requests。
+
+两种做法都得到逐页图片，再合并为 PDF（需要 Pillow）：
+
+```bash
+python3 skills/nsfc-writing/scripts/merge_pages.py 报告图片目录 --name "项目名称"
+```
+
+把 PDF 交给 agent，说“参考这几份结题报告”，agent 会按 `references/past-reports.md` 比较题目收窄程度、研究体量、计划与完成的差距和成果数量。也可以完全手动逐页保存图片。
+
+报告供个人学习参考，按网站使用条款使用，不对外分发。`fetch_report.py` 的接口参数按网页前端代码整理，首次使用建议加 `--end 2` 先试两页。
 
 ## 使用须知
 

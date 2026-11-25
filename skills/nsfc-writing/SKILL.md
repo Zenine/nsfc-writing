@@ -47,6 +47,7 @@ description: 用于撰写、修改、诊断国家自然科学基金（国自然�
 | 脚本 | 用途 |
 |---|---|
 | `python3 scripts/count_chars.py 文件或 -t 文字` | 统计字数（不含空白），摘要、题目交付前必用 |
+| `python3 scripts/fetch_report.py --url 详情页 --token 报告令牌 --out 目录` | 用户在浏览器完成滑块验证后，用其报告令牌逐页下载结题报告页面（需要 requests） |
 | `python3 scripts/merge_pages.py 图片目录 --name 项目名称` | 把本地保存的结题报告页面合并为 PDF（需要 Pillow，不联网） |
 
 ## 执行顺序

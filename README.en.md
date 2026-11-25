@@ -28,7 +28,7 @@ claude plugin marketplace add Zenine/nsfc-writing && claude plugin install nsfc-
 
 ## Past final reports (manual browser steps)
 
-Final reports of completed NSFC projects are public on kd.nsfc.cn, but viewing a full report requires passing a slider verification in the browser, so the skill does not download them automatically. Search the site in your browser, open a report, pass the verification, save each page image into one folder per project (file names numbered by page), merge them with `python3 skills/nsfc-writing/scripts/merge_pages.py <folder> --name "<project name>"` (requires Pillow), and give the PDF to the agent. For personal study only; follow the site's terms of use.
+Final reports of completed NSFC projects are public on kd.nsfc.cn, but viewing a full report requires a slider verification that you complete yourself in the browser. Then either (1) let a browser-automation tool (Claude in Chrome, browser-use, Playwright, etc.) navigate and save the pages, pausing for you to solve the slider; or (2) copy the `reportToken` from the browser's network panel (request to `/api/baseQuery/completeProjectReport`; valid for about 29 minutes) and run `python3 skills/nsfc-writing/scripts/fetch_report.py --url "<detail page>" --token <token> --out <folder>` (requires requests). Merge the pages with `merge_pages.py` (requires Pillow) and give the PDF to the agent. For personal study only; follow the site's terms of use.
 
 ## Notes
 

@@ -17,6 +17,11 @@ printf '%s\n' "$out" | grep -qx '汉字：4' || fail "汉字数错误：$out"
 printf '%s' "一二三" > "$tmp/t.md"
 python3 "$scripts/count_chars.py" "$tmp/t.md" | grep -qx '合计（不含空白）：3' || fail '文件统计错误'
 
+# fetch_report：用假会话离线测试，需要 requests；缺少时跳过。
+if python3 -c 'import requests' 2>/dev/null; then
+  python3 "$repo_root/tests/scripts/fetch_report_cases.py" "$scripts" >/dev/null || fail 'fetch_report 离线测试失败'
+fi
+
 # merge_pages：需要 Pillow；缺少时跳过。
 if ! python3 -c 'import PIL' 2>/dev/null; then
   printf '%s\n' 'skill 脚本回归测试通过（merge_pages 因缺少 Pillow 跳过）'
