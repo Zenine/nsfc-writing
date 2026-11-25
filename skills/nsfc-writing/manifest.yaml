@@ -1,5 +1,5 @@
 name: nsfc-writing
-version: 0.2.0
+version: 0.2.1
 description: >
   加载清单，也是参考文件加载条件的唯一出处。core 每次必读，sections 按用户
   涉及的章节读，references 按下列条件读。

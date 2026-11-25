@@ -29,7 +29,7 @@ skills/nsfc-writing/
 ├── core/               每次必读：工作立场与语体、科学问题工作表、评审视角
 ├── sections/           按章节：题目、摘要、英文题目摘要、立项依据、研究内容、方案、配图、创新、计划、研究基础、预算
 ├── references/         按条件：2026 版提纲与硬要求、项目类型差异、用词、诊断、自查清单、大模型辅助、完整示例、往年结题报告
-└── scripts/            字数统计；把本地保存的结题报告页面合并为 PDF（需要 Pillow）
+└── scripts/            字数统计；把本地保存的结题报告页面合并为 PDF（需要 Pillow；PDF 作者写本机用户名）
 ```
 
 路由方式借鉴了 [nature-skills](https://github.com/Yuan1z0825/nature-skills) 的“核心必读 ＋ 按维度加载片段 ＋ 按条件查参考”设计，避免一次把所有规则塞进上下文。
@@ -54,7 +54,7 @@ curl -fsSL https://raw.githubusercontent.com/Zenine/nsfc-writing/main/scripts/in
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Zenine/nsfc-writing/main/scripts/install.sh | bash -s -- --link   # 克隆后软链接；装的是分支时可用 git pull 更新
-curl -fsSL https://raw.githubusercontent.com/Zenine/nsfc-writing/main/scripts/install.sh | REF=v0.2.0 bash   # 安装指定版本
+curl -fsSL https://raw.githubusercontent.com/Zenine/nsfc-writing/main/scripts/install.sh | REF=v0.2.1 bash   # 安装指定版本
 ```
 
 其他选项：`TARGET=claude` 或 `TARGET=codex` 只装一个；`DEST=<skills 目录>` 指定 skills 目录，实际装到 `<skills 目录>/nsfc-writing`；目标已存在但不是本 skill 时脚本会停止。想先看脚本：下载后 `less install.sh` 再运行。脚本只下载、复制或软链接，不改任何配置文件。

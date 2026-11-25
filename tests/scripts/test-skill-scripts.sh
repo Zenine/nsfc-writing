@@ -43,5 +43,24 @@ if python3 "$scripts/merge_pages.py" "$tmp/pages" --name '测试/项目:名称' 
 fi
 python3 "$scripts/merge_pages.py" "$tmp/pages" --name '测试/项目:名称' --overwrite >/dev/null || fail '--overwrite 无效'
 [ ! -e "$pdf.part" ] || fail '遗留临时文件'
+# 元数据：默认写本机实际用户名；--author 可覆盖；不留库的默认值。
+expected="$(git config user.name 2>/dev/null || true)"
+[ -n "$expected" ] || expected="${USER:-$(id -un)}"
+python3 - "$pdf" "$expected" <<'PY'
+import sys
+from PIL import Image  # noqa: F401  确认 Pillow 可用
+data = open(sys.argv[1], "rb").read()
+name = sys.argv[2]
+utf16 = b"\xfe\xff" + name.encode("utf-16-be")
+assert b"/Author" in data and b"/Creator" in data, "缺少 Author 或 Creator"
+assert utf16 in data or b"(" + name.encode() + b")" in data, f"作者不是本机用户名 {name}"
+assert b"(PIL)" not in data, "仍保留 PIL 默认值"
+PY
+python3 "$scripts/merge_pages.py" "$tmp/pages" --name '测试/项目:名称' --overwrite --author 'TestUser' >/dev/null
+python3 - "$pdf" <<'PY' || fail '--author 未写入 PDF'
+import sys
+data = open(sys.argv[1], "rb").read()
+assert b"\xfe\xff" + "TestUser".encode("utf-16-be") in data or b"(TestUser)" in data
+PY
 
 printf '%s\n' 'skill 脚本回归测试通过'

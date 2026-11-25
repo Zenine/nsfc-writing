@@ -5,14 +5,20 @@
 逐页保存图片后，用本脚本合并。脚本只处理本地文件，不访问网络。
 
 用法：
-  python3 merge_pages.py 图片目录 [-o 输出.pdf] [--name 项目名称]
+  python3 merge_pages.py 图片目录 [-o 输出.pdf] [--name 项目名称] [--author 作者]
+
+PDF 的作者、创建者默认写运行脚本那台机器的实际用户名（git config user.name，
+取不到时用系统登录名），不写库的默认值。
 
 依赖：Pillow（pip install Pillow）。
 """
 from __future__ import annotations
 
 import argparse
+import getpass
+import os
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -32,6 +38,25 @@ def safe_name(name: str, fallback: str) -> str:
     return cleaned or fallback
 
 
+def machine_user() -> str:
+    """运行脚本的机器上的实际用户名：优先 git config user.name，其次系统登录名。"""
+    try:
+        name = subprocess.run(
+            ["git", "config", "user.name"], capture_output=True, text=True, timeout=5
+        ).stdout.strip()
+        if name:
+            return name
+    except (OSError, subprocess.SubprocessError):
+        pass
+    for key in ("USER", "USERNAME", "LOGNAME"):
+        if os.environ.get(key):
+            return os.environ[key]
+    try:
+        return getpass.getuser()
+    except Exception:
+        return ""
+
+
 def collect(folder: Path) -> list[Path]:
     return sorted((p for p in folder.iterdir() if p.is_file() and p.suffix.lower() in SUFFIXES), key=natural_key)
 
@@ -42,6 +67,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("-o", "--output", type=Path, help="输出 PDF 路径（默认为 目录名.pdf 或 项目名称.pdf）")
     parser.add_argument("--name", default="", help="项目名称，用于默认输出文件名")
     parser.add_argument("--overwrite", action="store_true", help="输出文件已存在时覆盖")
+    parser.add_argument("--author", default=None, help="PDF 作者与创建者；默认取本机 git user.name 或系统用户名")
     args = parser.parse_args(argv)
 
     try:
@@ -69,7 +95,12 @@ def main(argv: list[str] | None = None) -> int:
             with Image.open(p) as im:
                 images.append(im.convert("RGB"))
         tmp = output.with_suffix(output.suffix + ".part")
-        images[0].save(tmp, "PDF", resolution=100.0, save_all=True, append_images=images[1:])
+        author = args.author if args.author is not None else machine_user()
+        title = args.name or args.folder.name
+        images[0].save(
+            tmp, "PDF", resolution=100.0, save_all=True, append_images=images[1:],
+            title=title, author=author, creator=author, producer=author,
+        )
         tmp.replace(output)
     finally:
         for im in images:
