@@ -52,7 +52,7 @@ curl -fsSL https://raw.githubusercontent.com/Zenine/nsfc-writing/main/scripts/in
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Zenine/nsfc-writing/main/scripts/install.sh | bash -s -- --link   # 克隆后软链接，便于 git pull 更新
-curl -fsSL https://raw.githubusercontent.com/Zenine/nsfc-writing/main/scripts/install.sh | REF=v0.1.1 bash   # 安装指定版本
+curl -fsSL https://raw.githubusercontent.com/Zenine/nsfc-writing/main/scripts/install.sh | REF=v0.1.2 bash   # 安装指定版本
 ```
 
 其他选项：`TARGET=claude` 或 `TARGET=codex` 只装一个；`DEST=<skills 目录>` 指定 skills 目录，实际装到 `<skills 目录>/nsfc-writing`；目标已存在但不是本 skill 时脚本会停止。想先看脚本：下载后 `less install.sh` 再运行。脚本只下载、复制或软链接，不改任何配置文件。
