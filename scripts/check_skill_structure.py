@@ -61,6 +61,12 @@ def main() -> int:
         for ghost in sorted(refs - on_disk):
             errors.append(f"{label} 引用了不存在的 {ghost}")
 
+    for script in sorted((SKILL_DIR / "scripts").glob("*.py")):
+        rel = f"scripts/{script.name}"
+        for label, text in (("SKILL.md", skill_text), ("manifest.yaml", manifest_text)):
+            if rel not in text:
+                errors.append(f"{label} 未引用 {rel}")
+
     m = re.search(r"^version:\s*(\S+)", manifest_text, re.M)
     manifest_version = m.group(1) if m else None
     plugin_version = json.loads((ROOT / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8")).get("version")

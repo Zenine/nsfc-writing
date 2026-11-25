@@ -74,7 +74,7 @@ run_install() {
   local dest="$1" ref="$2" fail_mode="$3" path="$4" mode="${5:-}"
   local args=()
   [ -z "$mode" ] || args+=("$mode")
-  HOME="$tmp/home" DEST="$(dirname "$dest")" REF="$ref" ARCHIVE="$tmp/skill.tar.gz" URL_LOG="$tmp/urls.log" \
+  HOME="$tmp/home" CODEX_HOME="$tmp/home/.codex" DEST="$(dirname "$dest")" REF="$ref" ARCHIVE="$tmp/skill.tar.gz" URL_LOG="$tmp/urls.log" \
     XDG_DATA_HOME="$tmp/xdg" REAL_TAR="$tar_bin" REAL_CP="$(command -v cp)" REAL_LN="$(command -v ln)" \
     FAIL_MODE="$fail_mode" OP_COUNT_FILE="$tmp/op-count" GIT_LOG="$tmp/git.log" PATH="$path" bash "$installer" ${args[@]+"${args[@]}"}
 }
@@ -82,7 +82,7 @@ run_all_targets() {
   local home="$1" ref="$2" fail_mode="$3" path="$4" mode="${5:-}"
   local args=()
   [ -z "$mode" ] || args+=("$mode")
-  HOME="$home" TARGET=all DEST='' REF="$ref" ARCHIVE="$tmp/skill.tar.gz" URL_LOG="$tmp/urls.log" \
+  HOME="$home" CODEX_HOME="$home/.codex" TARGET=all DEST='' REF="$ref" ARCHIVE="$tmp/skill.tar.gz" URL_LOG="$tmp/urls.log" \
     XDG_DATA_HOME="$tmp/xdg" REAL_TAR="$tar_bin" REAL_CP="$(command -v cp)" REAL_LN="$(command -v ln)" \
     FAIL_MODE="$fail_mode" OP_COUNT_FILE="$tmp/op-count" GIT_LOG="$tmp/git.log" PATH="$path" bash "$installer" ${args[@]+"${args[@]}"}
 }
@@ -218,15 +218,47 @@ fi
 grep -qx 'name: something-else' "$foreign/SKILL.md" || fail '非本 skill 目录被改动'
 
 # 非法 TARGET 与未知参数直接报错。
-if HOME="$tmp/home" TARGET=bogus DEST='' PATH="$stub_dir:$base_path" bash "$installer" 2>"$tmp/target.err"; then
+if HOME="$tmp/home" CODEX_HOME="$tmp/home/.codex" TARGET=bogus DEST='' PATH="$stub_dir:$base_path" bash "$installer" 2>"$tmp/target.err"; then
   fail '非法 TARGET 场景意外成功'
 fi
 grep -q 'TARGET 只能是' "$tmp/target.err" || fail '非法 TARGET 报错信息不准确'
-if HOME="$tmp/home" PATH="$stub_dir:$base_path" bash "$installer" --lnk 2>/dev/null; then
+if HOME="$tmp/home" CODEX_HOME="$tmp/home/.codex" PATH="$stub_dir:$base_path" bash "$installer" --lnk 2>/dev/null; then
   fail '未知参数场景意外成功'
 fi
 
 # 经管道执行时 --help 也能输出说明。
 bash -s -- --help < "$installer" | grep -q 'DEST=<skills 目录>' || fail '--help 经管道执行失败'
+
+# 指向其他目录的软链接不覆盖；指向本 skill 的软链接可以替换。
+foreign_target="$tmp/foreign-link-target"
+mkdir -p "$foreign_target"
+printf 'name: other-skill\n' > "$foreign_target/SKILL.md"
+mkdir -p "$tmp/link-guard"
+ln -s "$foreign_target" "$tmp/link-guard/nsfc-writing"
+if run_install "$tmp/link-guard/nsfc-writing" main '' "$stub_dir:$base_path" 2>/dev/null; then
+  fail '替换了指向其他目录的软链接'
+fi
+[ "$(readlink "$tmp/link-guard/nsfc-writing")" = "$foreign_target" ] || fail '外部软链接被改动'
+own_target="$tmp/own-link-target"
+make_old "$own_target"
+mkdir -p "$tmp/link-own"
+ln -s "$own_target" "$tmp/link-own/nsfc-writing"
+run_install "$tmp/link-own/nsfc-writing" main '' "$stub_dir:$base_path" >/dev/null
+[ "$(cat "$tmp/link-own/nsfc-writing/SKILL.md")" = '新版 skill' ] || fail '指向本 skill 的软链接未被替换'
+
+# --link 时安装目标与源码目录重合必须拒绝。
+mkdir -p "$tmp/xdg/nsfc-writing/skills"
+if run_install "$tmp/xdg/nsfc-writing/skills/nsfc-writing" main '' "$stub_dir:$base_path" --link 2>/dev/null; then
+  fail '安装目标位于源码目录内时未拒绝'
+fi
+
+# --link 时源码目录存在但不是 git 仓库必须拒绝。
+nogit_xdg="$tmp/nogit-xdg"
+mkdir -p "$nogit_xdg/nsfc-writing"
+printf '别的东西\n' > "$nogit_xdg/nsfc-writing/keep.txt"
+if HOME="$tmp/home" CODEX_HOME="$tmp/home/.codex" DEST="$tmp/nogit-dest" XDG_DATA_HOME="$nogit_xdg" GIT_LOG="$tmp/git.log" PATH="$stub_dir:$base_path" bash "$installer" --link 2>/dev/null; then
+  fail '非 git 源码目录未拒绝'
+fi
+[ -f "$nogit_xdg/nsfc-writing/keep.txt" ] || fail '非 git 源码目录被改动'
 
 printf 'install.sh 回归测试通过\n'

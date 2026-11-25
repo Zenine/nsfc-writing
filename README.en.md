@@ -2,7 +2,7 @@
 
 *[中文](README.md) | English*
 
-An agent skill (for Claude Code, Codex and any agent that reads `SKILL.md`) for drafting, revising and auditing proposals to the National Natural Science Foundation of China (NSFC): Young Scientists Fund (Category C), General Program, Regional Fund, Joint Funds, and provincial research programs.
+An agent skill (for Claude Code, Codex and any agent that reads `SKILL.md`) for drafting, revising and auditing proposals to the National Natural Science Foundation of China (NSFC): Young Scientists Fund (Category C), General Program, Regional Fund, Key Program, Joint Funds, and provincial research programs.
 
 The skill targets the most common failure of Chinese grant proposals: a list of technical tasks with no scientific question. It first builds a "scientific question worksheet" (object, underlying mechanism, limits of current knowledge, new approach, testable hypothesis, key scientific questions), then expands it into the title, abstract, rationale, research content, technical route, innovation and research foundation, keeping every section aligned.
 
@@ -12,6 +12,7 @@ All instructions and templates are written in Simplified Chinese, because the pr
 
 - `skills/nsfc-writing/SKILL.md` — router: detects task, section and program type, then loads only what is needed.
 - `manifest.yaml` — load list. `core/` is always loaded; `sections/` per section; `references/` on demand.
+- `scripts/` — a character counter, and a tool that merges locally saved pages of past NSFC final reports into a PDF (requires Pillow; no network access).
 - The routing design follows [nature-skills](https://github.com/Yuan1z0825/nature-skills).
 
 ## Install
@@ -32,7 +33,7 @@ claude plugin marketplace add Zenine/nsfc-writing && claude plugin install nsfc-
 
 ## Sources
 
-The skill reorganizes writing methods learned from the 2026 NSFC call and outline, notes from a grant-writing training course (which shaped much of the section structure), the book *From Technical Problems to Scientific Questions* (Gong Xuzhong, Science Press), the open-source projects njzjz/nsfc-agent-skills and jiankang1991/nsfc-benzi-audit, and the maintainer's own proposal-writing experience. No text, slides or screenshots from the course or the book are included; the official call and outline are quoted verbatim.
+Writing methods draw on the 2026 NSFC call and outline, notes from a grant-writing training course (the source of many section-level points), the book *From Technical Problems to Scientific Questions* (Gong Xuzhong, Science Press), the open-source projects njzjz/nsfc-agent-skills and jiankang1991/nsfc-benzi-audit, and the maintainer's own proposal-writing experience. The skill text is organized around its own scientific-question worksheet. The repository contains no text, slides or screenshots from the course or the book; the official call and outline are quoted verbatim.
 
 ## License
 

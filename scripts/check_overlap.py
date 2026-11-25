@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """检查公开文本与本机参考资料（sources/text/）是否存在长段连续重合。
 
-只保留汉字，去掉空白、标点、数字和拉丁字母后，按整份文件滑窗比对：任意连续
-N 个字符（默认 20）与参考资料相同即报告，跨行、跨列表项的重合也能检出。
+只保留汉字比对：参考资料整份连续，被检文本按句末标点切成句段（换行不切分），
+句段内任意连续 N 个汉字（默认 20）与参考资料相同即报告。
 与 sources/official/ 中官方公开文件相同的片段属于有意引用，不计。
 用法：python3 scripts/check_overlap.py <目录或文件>...
 退出码：0 无重合（或缺少参考资料时 SKIPPED）；1 有重合。
@@ -27,20 +27,38 @@ SENTENCE_END = ("。", "!", "?", ";", "！", "？", "；")
 
 
 def norm_with_lines(text: str) -> tuple[str, list[int]]:
-    """返回规范化文本及每个字符对应的原文行号。"""
+    """返回只含汉字的规范化文本及每个字符对应的原文行号（参考资料用，不切分）。"""
     chars: list[str] = []
     lines: list[int] = []
     for lineno, line in enumerate(text.splitlines(), 1):
-        line = unicodedata.normalize("NFKC", line)
-        for ch in line:
+        for ch in unicodedata.normalize("NFKC", line):
             if KEEP.match(ch):
                 chars.append(ch)
                 lines.append(lineno)
-        # 句末标点结尾的行视为句子边界，避免把相邻两句拼成伪重合；硬换行的半句仍会连起来比对。
-        if line.rstrip().endswith(SENTENCE_END):
-            chars.append("|")
-            lines.append(lineno)
     return "".join(chars), lines
+
+
+def target_segments(text: str) -> list[tuple[str, list[int]]]:
+    """把被检文本按句末标点切成句段，句段内跨行连续拼接；句段之间不拼接。
+
+    换行不切分，所以硬换行、拆成多行列表项的同一句仍会被整体比对；
+    句号等句末标点处切分，避免把相邻两句拼成伪重合。
+    """
+    segments: list[tuple[str, list[int]]] = []
+    chars: list[str] = []
+    lines: list[int] = []
+    for lineno, line in enumerate(text.splitlines(), 1):
+        for ch in unicodedata.normalize("NFKC", line):
+            if KEEP.match(ch):
+                chars.append(ch)
+                lines.append(lineno)
+            elif ch in SENTENCE_END:
+                if chars:
+                    segments.append(("".join(chars), lines))
+                chars, lines = [], []
+    if chars:
+        segments.append(("".join(chars), lines))
+    return segments
 
 
 def windows(s: str) -> set[str]:
@@ -72,6 +90,15 @@ def main(argv: list[str]) -> int:
     for f in official:
         corpus -= windows(norm_with_lines(f.read_text(errors="ignore"))[0])
 
+    allow = ROOT / "scripts" / "overlap_allowlist.txt"
+    allowed: list[str] = []
+    if allow.is_file():
+        for raw in allow.read_text(encoding="utf-8").splitlines():
+            if raw.strip() and not raw.lstrip().startswith("#"):
+                allowed.append(norm_with_lines(raw)[0])
+    if allowed:
+        corpus = {w for w in corpus if not any(w in a for a in allowed)}
+
     targets: list[Path] = []
     for a in argv or ["skills"]:
         p = Path(a) if Path(a).is_absolute() else ROOT / a
@@ -82,15 +109,15 @@ def main(argv: list[str]) -> int:
 
     hits = 0
     for f in targets:
-        s, lines = norm_with_lines(f.read_text(errors="ignore"))
         reported: set[int] = set()
-        for i in range(len(s) - N + 1):
-            if s[i : i + N] in corpus:
-                lineno = lines[i]
-                if lineno not in reported:
-                    reported.add(lineno)
-                    hits += 1
-                    print(f"{display(f)}:{lineno}: 与参考资料连续重合 ≥{N} 字")
+        for seg, lines in target_segments(f.read_text(errors="ignore")):
+            for i in range(len(seg) - N + 1):
+                if seg[i : i + N] in corpus:
+                    lineno = lines[i]
+                    if lineno not in reported:
+                        reported.add(lineno)
+                        hits += 1
+                        print(f"{display(f)}:{lineno}: 与参考资料连续重合 ≥{N} 字")
     print(f"参考资料 {len(sources)} 份，官方文件 {len(official)} 份，检查 {len(targets)} 个文件")
     if hits:
         print(f"FAIL: {hits} 处与参考资料连续重合 ≥{N} 字")

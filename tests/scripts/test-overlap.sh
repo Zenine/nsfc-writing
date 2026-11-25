@@ -7,7 +7,7 @@ repo_root="$(cd "$(dirname "$0")/../.." && pwd)"
 checker="$repo_root/scripts/check_overlap.py"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
-mkdir -p "$tmp/src/text" "$tmp/src/official" "$tmp/target"
+mkdir -p "$tmp/src/text" "$tmp/src/official" "$tmp/target" "$tmp/target2"
 
 ref='春风拂过山岗溪水潺潺流向远方的村落炊烟袅袅升起映照着夕阳余晖'
 printf '%s\n' "$ref" > "$tmp/src/text/ref.md"
@@ -37,5 +37,16 @@ grep -q 'Traceback' "$out" && { printf '失败：出现异常堆栈\n' >&2; exit
 
 # 缺少参考资料时跳过。
 NSFC_SOURCES_DIR="$tmp/none" python3 "$checker" "$tmp/target" | grep -q '^SKIPPED:' || { printf '失败：缺资料时未跳过\n' >&2; exit 1; }
+
+# 同一行内两句以句号分隔，各不足 20 字，不应拼成命中。
+printf '%s\n' "${ref:0:12}。${ref:12:12}。" > "$tmp/target2/inline.md"
+# 同一句换行位置不同（与参考资料断行不一致），仍应命中。
+printf '%s\n%s\n' "${ref:0:7}" "${ref:7:20}" > "$tmp/target2/rewrap.md"
+# 19 个汉字后接句号，不应误报。
+printf '%s\n' "${ref:0:19}。" > "$tmp/target2/nineteen.md"
+out2="$tmp/out2"
+NSFC_SOURCES_DIR="$tmp/src" python3 "$checker" "$tmp/target2" > "$out2" 2>&1 || true
+grep -q 'rewrap.md:1:' "$out2" || { printf '失败：换行位置不同未检出\n' >&2; exit 1; }
+if grep -q 'inline.md\|nineteen.md' "$out2"; then printf '失败：句内拼接或 19 字误报\n' >&2; cat "$out2" >&2; exit 1; fi
 
 printf '%s\n' '重合检查回归测试通过'

@@ -21,8 +21,10 @@ jobs:
           python-version: ${{ matrix.python }}
           activate-environment: true
           enable-cache: false
-      - name: 确认 Python 版本
-        run: python3 --version
+      - name: 确认 Python 版本并安装测试依赖
+        run: |
+          python3 --version
+          uv pip install pillow
       - name: 运行仓库验证
         run: bash scripts/verify.sh
       - name: 运行脚本回归测试

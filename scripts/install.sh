@@ -5,7 +5,7 @@ set -euo pipefail
 USAGE='用法：
   curl -fsSL https://raw.githubusercontent.com/Zenine/nsfc-writing/main/scripts/install.sh | bash
   curl -fsSL .../install.sh | bash -s -- --link          # 克隆后软链接，便于 git pull 更新
-  curl -fsSL .../install.sh | REF=v0.1.2 bash            # 安装指定版本
+  curl -fsSL .../install.sh | REF=v0.2.0 bash            # 安装指定版本
 环境变量：
   TARGET=claude|codex|all   默认 all：装到已存在的 ~/.claude 与 ${CODEX_HOME:-~/.codex}
   DEST=<skills 目录>        自定义 skills 目录，实际安装到 <skills 目录>/nsfc-writing（此时忽略 TARGET）
@@ -47,11 +47,18 @@ else
 fi
 [ ${#dests[@]} -gt 0 ] || { echo "未找到 ~/.claude 或 $codex_home，请用 DEST=<skills 目录> 指定安装位置" >&2; exit 1; }
 
-# 目标已存在时，只允许替换本 skill 的旧版本，避免误删其他目录。
+# 把路径解析为绝对路径（目标本身可以不存在，父目录不存在时按原样拼接）。
+abs_path() {
+  local p="${1%/}" parent base
+  parent="$(dirname "$p")"; base="$(basename "$p")"
+  if [ -d "$parent" ]; then printf '%s/%s\n' "$(cd "$parent" && pwd -P)" "$base"; else printf '%s\n' "$p"; fi
+}
+is_own_skill() { [ -f "$1/SKILL.md" ] && grep -q "^name: $NAME\$" "$1/SKILL.md"; }
+
+# 目标已存在时，只允许替换本 skill 的旧版本（含指向本 skill 的软链接），避免误删其他目录。
 for d in "${dests[@]}"; do
-  if [ -L "$d" ]; then continue; fi
-  if [ -e "$d" ]; then
-    if [ ! -f "$d/SKILL.md" ] || ! grep -q "^name: $NAME\$" "$d/SKILL.md"; then
+  if [ -L "$d" ] || [ -e "$d" ]; then
+    if ! is_own_skill "$d"; then
       echo "目标已存在且不是 $NAME：$d，已停止，未做任何改动" >&2
       exit 1
     fi
@@ -60,13 +67,36 @@ done
 
 src_root=""
 prev_head=""
+prev_branch=""
 fresh_clone=0
 if [ "$MODE" = "link" ]; then
   src_root="${XDG_DATA_HOME:-$HOME/.local/share}/$NAME"
+  src_abs="$(abs_path "$src_root")"
+  for d in "${dests[@]}"; do
+    d_abs="$(abs_path "$d")"
+    case "$d_abs/" in
+      "$src_abs/"*) echo "安装目标位于源码目录内：$d，已停止" >&2; exit 1 ;;
+    esac
+    case "$src_abs/" in
+      "$d_abs/"*) echo "源码目录位于安装目标内：$d，已停止" >&2; exit 1 ;;
+    esac
+  done
+  if [ -e "$src_root" ] && [ ! -d "$src_root/.git" ]; then
+    echo "$src_root 已存在但不是 git 仓库，请先移走后重试" >&2
+    exit 1
+  fi
   if [ -d "$src_root/.git" ]; then
     prev_head="$(git -C "$src_root" rev-parse HEAD 2>/dev/null || true)"
-    git -C "$src_root" fetch -q --depth 1 origin "$REF"
-    git -C "$src_root" checkout -q --detach FETCH_HEAD
+    prev_branch="$(git -C "$src_root" symbolic-ref -q --short HEAD 2>/dev/null || true)"
+    if git -C "$src_root" fetch -q --depth 1 origin "+refs/heads/$REF:refs/remotes/origin/$REF" 2>/dev/null; then
+      # 分支：保留跟踪关系，之后可直接 git pull
+      git -C "$src_root" checkout -q -B "$REF" "origin/$REF"
+      git -C "$src_root" branch -q --set-upstream-to="origin/$REF" "$REF" 2>/dev/null || true
+    else
+      # 标签：固定到该版本
+      git -C "$src_root" fetch -q --depth 1 origin "+refs/tags/$REF:refs/tags/$REF"
+      git -C "$src_root" checkout -q --detach "refs/tags/$REF"
+    fi
   else
     git clone -q --depth 1 -b "$REF" "https://github.com/$REPO.git" "$src_root"
     fresh_clone=1
@@ -93,7 +123,9 @@ restore_all() {
     [ -z "$backup" ] || mv "$backup" "$d"
   done
   if [ "$MODE" = "link" ]; then
-    if [ -n "$prev_head" ]; then
+    if [ -n "$prev_branch" ] && [ -n "$prev_head" ]; then
+      git -C "$src_root" checkout -q -B "$prev_branch" "$prev_head" || true
+    elif [ -n "$prev_head" ]; then
       git -C "$src_root" checkout -q --detach "$prev_head" || true
     elif [ "$fresh_clone" = 1 ]; then
       rm -rf "$src_root"

@@ -5,7 +5,7 @@
 ## 硬边界
 
 1. **参考资料永不入库。** 书籍、课程课件、录像、转写文本放 `sources/`（已忽略），任何 `*.pdf`、`*.pptx`、`*.docx`、`*.mp4` 和 `sources/` 下文件不得提交。`scripts/verify.sh` 会检查。
-2. **重新整理，不复述。** `skills/` 用自己的逻辑和话整理方法、结构和清单；不连续抄录参考资料原文，不搬用课程自创的口诀、配比、模板句和案例，不收课件页、截图和讲稿。`scripts/check_overlap.py` 按整份文件以连续 20 个汉字做机检；与 `sources/official/` 中官方通告、提纲相同的片段属于有意引用，不计入。
+2. **重新整理，不复述。** `skills/` 用自己的逻辑和话整理方法、结构和清单；不连续抄录参考资料原文，不搬用课程自创的口诀、配比、模板句和案例，不收课件页、截图和讲稿。`scripts/check_overlap.py` 按整份文件以连续 20 个汉字做机检；与 `sources/official/` 中官方通告、提纲相同的片段属于有意引用，不计入。官方条文的常见转述可加入 `scripts/overlap_allowlist.txt`，只收官方条文，不收课程内容。
 3. **不点课程名。** README 只写“一套基金申请书写作培训课程的学习笔记”，不写课程名称、机构名和讲师名。
 4. **隐私。** 示例一律用虚构课题，不使用维护者或任何真实申请人的项目、单位、地点、数据。本机私有黑名单放 `.private/privacy-blacklist.txt`（已忽略），`verify.sh` 存在该文件时自动使用。
 5. **语言。** 说明文字用简体中文；README.en.md 为英文简版。
@@ -13,7 +13,8 @@
 
 ## 目录
 
-- `skills/nsfc-writing/`：最终产品。`SKILL.md` 路由与文件索引 ＋ `manifest.yaml`（参考文件加载条件的唯一出处）＋ `core/`、`sections/`、`references/`。
+- `skills/nsfc-writing/`：最终产品，含 `scripts/`（字数统计、本地页面合并，不联网）。`SKILL.md` 路由与文件索引 ＋ `manifest.yaml`（参考文件加载条件的唯一出处）＋ `core/`、`sections/`、`references/`。
+  - 章节文件统一结构：这一部分要让评审相信什么 → 从工作表取什么 → 写法 → 自检。新增或改写章节沿用此结构，以科学问题工作表为线索组织，不按任何参考资料的分节顺序。
 - `tests/fixtures/`：行为测试用例（输入 ＋ 期望表现）。
 - `tests/regression/`：无 skill 基线与带 skill 输出。
 - `tests/scripts/`：脚本回归测试。

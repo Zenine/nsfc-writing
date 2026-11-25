@@ -54,11 +54,26 @@ if python3 scripts/check_public_privacy.py ${blacklist:+--blacklist "$blacklist"
 else
   bad "发现公开隐私风险"
 fi
+# 脚本与配置：常规路径与凭证规则照查；含刻意风险样例或正则源码的四个文件只查黑名单。
+sample_files="scripts/check_public_privacy.py scripts/check_readme_links.py tests/scripts/test-public-privacy.sh tests/scripts/test-check-readme-links.sh"
+code_files=""
+for f in .github/workflows/*.yml scripts/*.sh scripts/*.py tests/scripts/*.sh; do
+  [ -f "$f" ] || continue
+  case " $sample_files " in *" $f "*) continue ;; esac
+  code_files="$code_files $f"
+done
+# shellcheck disable=SC2086
+if python3 scripts/check_public_privacy.py ${blacklist:+--blacklist "$blacklist"} $code_files; then
+  ok "脚本与配置无隐私风险"
+else
+  bad "脚本与配置发现隐私风险"
+fi
 if [ -n "$blacklist" ]; then
-  if python3 scripts/check_public_privacy.py --only-blacklist --blacklist "$blacklist" scripts tests/scripts .github; then
-    ok "脚本与配置无私有黑名单词"
+  # shellcheck disable=SC2086
+  if python3 scripts/check_public_privacy.py --only-blacklist --blacklist "$blacklist" $sample_files; then
+    ok "风险样例文件无私有黑名单词"
   else
-    bad "脚本与配置命中私有黑名单"
+    bad "风险样例文件命中私有黑名单"
   fi
 fi
 

@@ -5,7 +5,7 @@ description: 用于撰写、修改、诊断国家自然科学基金（国自然�
 
 # 国自然申请书写作
 
-本 skill 把一份本子看成**同一个科学问题的多次表达**：题目、摘要、立项依据、研究内容、关键科学问题、技术路线、创新、研究基础，都从同一张“科学问题工作表”出发，前后一一呼应。评审阅读时间有限，多数是大同行，所以每一部分都要让人一眼看到“研究什么、为什么值得、凭什么能做成”。
+本 skill 把一份本子看成**同一个科学问题的多次表达**：题目、摘要、立项依据、研究内容、关键科学问题、技术路线、创新、研究基础，都从同一张“科学问题工作表”出发，前后一一呼应。评审阅读时间有限，也不一定是本方向的小同行，所以每一部分都要让人一眼看到“研究什么、为什么值得、凭什么能做成”。
 
 ## 路由
 
@@ -37,15 +37,21 @@ description: 用于撰写、修改、诊断国家自然科学基金（国自然�
 |---|---|
 | [references/policy-2026.md](references/policy-2026.md) | 2026 年度提纲原文、篇幅、研究期限、研究属性、经费方式、生成式人工智能等条款 |
 | [references/programs.md](references/programs.md) | 各项目类型的差异 |
-| [references/wording.md](references/wording.md) | 用词、易混词、句式、去除 AI 味 |
+| [references/wording.md](references/wording.md) | 用词、易混词、句式、去除 AI 腔 |
 | [references/diagnosis.md](references/diagnosis.md) | 常见症状、严重程度分级、诊断模板 |
 | [references/checklist.md](references/checklist.md) | 提交前自查清单 |
 | [references/ai-assist.md](references/ai-assist.md) | 借助大模型自查与修改的方法和边界 |
 | [references/worked-example.md](references/worked-example.md) | 一个虚构课题从工作表到题目、摘要、内容、目标、问题、创新的完整示例 |
+| [references/past-reports.md](references/past-reports.md) | 往年结题报告去哪里找、读什么、怎么用 |
+
+| 脚本 | 用途 |
+|---|---|
+| `python3 scripts/count_chars.py 文件或 -t 文字` | 统计字数（不含空白），摘要、题目交付前必用 |
+| `python3 scripts/merge_pages.py 图片目录 --name 项目名称` | 把本地保存的结题报告页面合并为 PDF（需要 Pillow，不联网） |
 
 ## 执行顺序
 
-1. **工作表**：起草新章节或重写整本时，先按 `core/science-question.md` 填工作表，放在正文之前；对象、科学本质或新切入缺失到拟不出假说时，先就这几格提问。修改单段、改题目、局部润色时跳过，只核对与工作表是否一致。政策问答不填工作表。
+1. **工作表**：按 `core/stance.md` 输出格式中的规则决定给完整工作表、三行小表还是不给；对象、科学本质或新切入缺失到拟不出假说时，先就这几格提问。
 2. **正文初稿**：按章节文件的结构写，句式和篇幅按章节文件给的默认值。
 3. **收尾**：按 `core/stance.md` 对应任务的输出格式，附对应关系和【待核】清单。
 

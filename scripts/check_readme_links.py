@@ -10,7 +10,43 @@ from urllib.parse import unquote, urlsplit
 
 
 FENCE = re.compile(r"^\s{0,3}(`{3,}|~{3,})")
-CODE_SPAN = re.compile(r"(`+)(.+?)\1")
+
+
+def strip_code_spans(line: str) -> str:
+    """把行内代码替换为等长空格：反引号串需与同长度的闭合串配对，转义的反引号不算。"""
+    out = list(line)
+    i, n = 0, len(line)
+    while i < n:
+        if line[i] == "\\":
+            i += 2
+            continue
+        if line[i] != "`":
+            i += 1
+            continue
+        j = i
+        while j < n and line[j] == "`":
+            j += 1
+        run = j - i
+        k = j
+        close = -1
+        while k < n:
+            if line[k] == "`":
+                m = k
+                while m < n and line[m] == "`":
+                    m += 1
+                if m - k == run:
+                    close = m
+                    break
+                k = m
+            else:
+                k += 1
+        if close == -1:
+            i = j
+            continue
+        for t in range(i, close):
+            out[t] = " "
+        i = close
+    return "".join(out)
 ROOT = Path(__file__).resolve().parent.parent
 
 
@@ -111,7 +147,7 @@ def check(path: Path) -> int:
         print(f"{path}: 缺失 Markdown 文件", file=sys.stderr)
         return 1
     for lineno, line in in_fenced_code(path.read_text(encoding="utf-8").splitlines()):
-        line = CODE_SPAN.sub(lambda m: " " * len(m.group(0)), line)
+        line = strip_code_spans(line)
         for target in inline_destinations(line):
             local = local_target(target)
             if local is None:

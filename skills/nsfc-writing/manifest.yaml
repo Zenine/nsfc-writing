@@ -1,5 +1,5 @@
 name: nsfc-writing
-version: 0.1.2
+version: 0.2.0
 description: >
   加载清单，也是参考文件加载条件的唯一出处。core 每次必读，sections 按用户
   涉及的章节读，references 按下列条件读。
@@ -39,7 +39,7 @@ axes:
 
 references:
   on_demand:
-    - condition: task 为 qa，或涉及提纲结构、篇幅、研究期限、研究属性、经费方式、代表作、生成式人工智能声明与标识等硬要求
+    - condition: task 为 qa，或涉及提纲结构、篇幅、研究期限、研究属性、经费方式、代表作、生成式人工智能声明与标识、伦理审查等硬要求，或研究涉及人体样本、临床数据、实验动物
       path: references/policy-2026.md
     - condition: program 不是 youth-c，或年度计划、预算、篇幅与项目类型有关
       path: references/programs.md
@@ -53,3 +53,11 @@ references:
       path: references/ai-assist.md
     - condition: 用户要完整示例，或不清楚科学问题如何贯穿全本
       path: references/worked-example.md
+    - condition: 用户想参考往年获资助项目、结题报告，或已提供本地结题报告文件
+      path: references/past-reports.md
+
+scripts:
+  - path: scripts/count_chars.py
+    use: 统计摘要、题目等文字的字数（不含空白），python3 调用
+  - path: scripts/merge_pages.py
+    use: 把本地保存的结题报告页面图片合并为 PDF，python3 调用，需要 Pillow
