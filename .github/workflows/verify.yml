@@ -20,6 +20,7 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           activate-environment: true
+          enable-cache: false
       - name: 确认 Python 版本
         run: python3 --version
       - name: 运行仓库验证
